@@ -9,8 +9,8 @@ FFT drumFft;
 Amplitude amp;
 
 int COUNT = 10;
-float MINSIZE = 0.01;
-float MAXSIZE = 0.5;
+int MINSIZE = 10;
+int MAXSIZE = 50;
 float MINSPEED = 0.5;
 float MAXSPEED = 10;
 int BOUNCE_HEIGHT = 300;
@@ -19,6 +19,12 @@ String BG_COLOR = "#171d21";
 String BOTTOM_NAME = "bottom";
 PImage img;
 PImage background;
+PImage tama1;
+PImage tama2;
+PImage tama3;
+PImage tama4;
+PImage tama5;
+ArrayList<PImage> tamas = new ArrayList<PImage>();
 
 void setup() {
     size(1000, 1000);
@@ -27,6 +33,7 @@ void setup() {
     img = loadImage("../images/bosatsu.png");
     background = loadImage("../images/background.png");
     background.resize(1000, 1000);
+    setupTama();
     setupWorld();
     setupSound();
     setupFft();
@@ -50,6 +57,19 @@ void draw() {
     if (amp.analyze() < 0.1) {
         removeBubble();
     }
+}
+
+void setupTama() {
+    tama1 = loadImage("../images/tama1.png");
+    tama2 = loadImage("../images/tama2.png");
+    tama3 = loadImage("../images/tama3.png");
+    tama4 = loadImage("../images/tama4.png");
+    tama5 = loadImage("../images/tama5.png");
+    tamas.add(tama1);
+    tamas.add(tama2);
+    tamas.add(tama3);
+    tamas.add(tama4);
+    tamas.add(tama5);
 }
 
 /**
@@ -133,9 +153,10 @@ void addBubble(float spectrum) {
     float zDist = random(0, 100);
     float x = random(200, 260);
     float y = 0;
-    float size = map(zDist, 0, 1, MINSIZE, MAXSIZE);
+    float size = random(MINSIZE, MAXSIZE);
     float speed = map(zDist, 0, 1, MINSPEED, MAXSPEED);
-    Bubble bubble = new Bubble(x, y, size, speed, color(0, random(0, 255), map(spectrum, 0, 100, 0, 255)));
+    PImage tama = tamas.get(int(random(0, tamas.size()))).copy();
+    Bubble bubble = new Bubble(x, y, size, speed, tama);
     world.add(bubble.body);
 }
 
@@ -157,10 +178,11 @@ void removeBubble() {
 
 class Bubble{
     public FCircle body;
-    public Bubble(float x, float y, float size, float speed, color bubbleColor) {
+    public Bubble(float x, float y, float size, float speed, PImage image) {
+        image.resize(int(size), int(size));
         this.body = new FCircle(size);
         this.body.setPosition(x, y);
-        this.body.setFillColor(bubbleColor);
+        this.body.attachImage(image);
         this.body.setNoStroke();
         this.body.setRestitution(0.4);
         this.body.setVelocity(0, speed);
