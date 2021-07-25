@@ -56,7 +56,6 @@ void draw() {
     world.step();
     world.draw();
     pop();
-    drawSpectrumGraph();
     fallBubbles();
     if (amp.analyze() < 0.1) {
         removeBubble();
@@ -110,17 +109,6 @@ void playSound() {
 
 void setupAmplitude() {
     amp = new Amplitude(this);
-}
-
-void drawSpectrumGraph() {
-    float[] drumSpectrum = drumFft.analyze();
-    for (int i = 0; i < drumSpectrum.length; i++) {
-        float mapped = map(drumSpectrum[i], 0,1,0,100);
-        float y = map(drumSpectrum[i], 0,0.1, 0, height);
-        noStroke();
-        fill(255, i, 255);
-        rect(i * 5, height - y, 4, y);
-    }
 }
 
 void fallBubbles() {
