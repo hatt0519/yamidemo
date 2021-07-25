@@ -1,5 +1,6 @@
 import fisica.*;
 import processing.sound.*;
+import gifAnimation.*;
 FWorld world;
 SoundFile drumSound;
 SoundFile guitar1Sound;
@@ -18,19 +19,22 @@ int FRAME_RATE = 18;
 String BG_COLOR = "#171d21";
 String BOTTOM_NAME = "bottom";
 PImage img;
+Gif bosatsu;
 PImage background;
 PImage tama1;
 PImage tama2;
 PImage tama3;
 PImage tama4;
 PImage tama5;
-ArrayList<PImage> tamas = new ArrayList<PImage>();
+ArrayList < PImage > tamas = new ArrayList < PImage > ();
 
 void setup() {
     size(1000, 1000);
     background(255);
     frameRate(FRAME_RATE);
     img = loadImage("../images/bosatsu.png");
+    bosatsu = new Gif (this, "../images/bosatsu_mepachi.gif");
+    bosatsu.play();
     background = loadImage("../images/background.png");
     background.resize(1000, 1000);
     setupTama();
@@ -134,7 +138,7 @@ void drawBosatsu() {
     float imageY = 130;
     float width = 1140;
     float height = 864;
-    image(img, imageX, imageY, width, height);
+    image(bosatsu, imageX, imageY, width, height);
 }
 
 void drawCollision() {
