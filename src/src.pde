@@ -17,11 +17,14 @@ int BOUNCE_HEIGHT = 300;
 String BG_COLOR = "#171d21";
 String BOTTOM_NAME = "bottom";
 PImage img;
+PImage background;
 
 void setup() {
     size(1000, 1000);
     background(255);
     img = loadImage("../images/bosatsu.png");
+    background = loadImage("../images/background.png");
+    background.resize(1000, 1000);
     setupWorld();
     setupSound();
     setupFft();
@@ -34,6 +37,7 @@ void setup() {
 }
 
 void draw() {
+    resetBackground();
     push();
     drawBosatsu();
     world.step();
@@ -44,6 +48,13 @@ void draw() {
     if (amp.analyze() < 0.1) {
         removeBubble();
     }
+}
+
+/**
+* スペクトラムやボールが重ねて描画されないようにdraw()ごとに背景でresetする
+*/
+void resetBackground() {
+    background(background);
 }
 
 void setupWorld() {
