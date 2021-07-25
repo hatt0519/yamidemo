@@ -112,8 +112,8 @@ void fallBubbles() {
 void drawBosatsu() {
     float imageX = 0;
     float imageY = 0;
-    float width = 1000;
-    float height = 1000;
+    float width = 950;
+    float height = 720;
     image(img, imageX, imageY, width, height);
 }
 
