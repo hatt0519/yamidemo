@@ -119,7 +119,7 @@ void drawBosatsu() {
 
 void drawCollision() {
     FBox collision = new FBox(150, 50);
-    collision.setPosition(270, 700);
+    collision.setPosition(250, 700);
     collision.setStatic(true);
     collision.setGrabbable(false);
     collision.setNoFill();
@@ -131,7 +131,7 @@ void drawCollision() {
 
 void addBubble(float spectrum) {
     float zDist = random(0, 100);
-    float x = random(200, 300);
+    float x = random(200, 260);
     float y = 0;
     float size = map(zDist, 0, 1, MINSIZE, MAXSIZE);
     float speed = map(zDist, 0, 1, MINSPEED, MAXSPEED);
