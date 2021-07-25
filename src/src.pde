@@ -110,16 +110,16 @@ void fallBubbles() {
 }
 
 void drawBosatsu() {
-    float imageX = 0;
-    float imageY = 0;
-    float width = 950;
-    float height = 720;
+    float imageX = -200;
+    float imageY = 130;
+    float width = 1140;
+    float height = 864;
     image(img, imageX, imageY, width, height);
 }
 
 void drawCollision() {
     FBox collision = new FBox(150, 50);
-    collision.setPosition(270, 680);
+    collision.setPosition(270, 700);
     collision.setStatic(true);
     collision.setGrabbable(false);
     collision.setNoFill();
