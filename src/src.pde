@@ -2,12 +2,17 @@ import fisica.*;
 import processing.sound.*;
 import gifAnimation.*;
 FWorld world;
-SoundFile drumSound;
+SoundFile otherSound;
 SoundFile guitar1Sound;
 SoundFile guitar2Sound;
+SoundFile keySound;
 FFT guitar1Fft;
-FFT drumFft;
-Amplitude amp;
+FFT otherFft;
+FFT guitar2Fft;
+FFT keyFft;
+Amplitude keyAmp;
+Amplitude guitar1Amp;
+Amplitude guitar2Amp;
 
 int COUNT = 10;
 int MINSIZE = 10;
@@ -15,10 +20,15 @@ int MAXSIZE = 50;
 float MINSPEED = 0.5;
 float MAXSPEED = 10;
 int BOUNCE_HEIGHT = 300;
-int FRAME_RATE = 18;
+int FRAME_RATE = 30;
+final int GTR1 = 1;
+final int GTR2 = 2;
+final int KEY = 3;
+
 String BG_COLOR = "#171d21";
 String BOTTOM_NAME = "bottom";
 PImage img;
+PImage sora;
 Gif bosatsu;
 PImage background;
 PImage tama1;
@@ -27,38 +37,58 @@ PImage tama3;
 PImage tama4;
 PImage tama5;
 ArrayList < PImage > tamas = new ArrayList < PImage > ();
+PImage star1;
+PImage star2;
+PImage star3;
+PImage star4;
+PImage star5;
+ArrayList < PImage > stars = new ArrayList < PImage > ();
+Cloud cloudFront;
+Cloud cloudBack;
+boolean isSoraShown = false;
 
 void setup() {
+    noSmooth();
     size(1000, 1000);
-    background(255);
     frameRate(FRAME_RATE);
     img = loadImage("../images/bosatsu.png");
     bosatsu = new Gif (this, "../images/bosatsu_mepachi.gif");
     bosatsu.play();
     background = loadImage("../images/background.png");
+    sora = loadImage("../images/sora.png");
     background.resize(1000, 1000);
+    sora.resize(1000,1000);
     setupTama();
+    setupStar();
     setupWorld();
     setupSound();
-    setupFft();
+    //setupFft();
     setupAmplitude();
     playSound();
-    drumFft.input(drumSound);
-    guitar1Fft.input(guitar1Sound);
-    amp.input(guitar2Sound);
     drawCollision();
+    cloudFront = new Cloud("../images/kumotest1.png", 2, 1000, 300);
+    cloudBack = new Cloud("../images/kumotest2.png", 1, 1000, 100);
 }
 
 void draw() {
-    resetBackground();
+    toggleSoraShown(guitar2Amp);
+    resetBackground(guitar2Amp);
     push();
+    cloudBack.move(isSoraShown);
+    cloudFront.move(isSoraShown);
     drawBosatsu();
     world.step();
     world.draw();
     pop();
-    fallBubbles();
-    if (amp.analyze() < 0.1) {
-        removeBubble();
+    fallBubbles(guitar1Amp, GTR1);
+    fallBubbles(guitar2Amp, GTR2);
+    fallBubbles(keyAmp, KEY);
+    removeBubble();
+}
+
+void toggleSoraShown(Amplitude amp) {
+    if (amp.analyze() > 0.01) {
+        isSoraShown = true;
     }
 }
 
@@ -75,11 +105,24 @@ void setupTama() {
     tamas.add(tama5);
 }
 
+void setupStar() {
+    star1 = loadImage("../images/hoshi1.png");
+    star2 = loadImage("../images/hoshi2.png");
+    star3 = loadImage("../images/hoshi3.png");
+    star4 = loadImage("../images/hoshi4.png");
+    star5 = loadImage("../images/hoshi5.png");
+    stars.add(star1);
+    stars.add(star2);
+    stars.add(star3);
+    stars.add(star4);
+    stars.add(star5);
+}
+
 /**
 * スペクトラムやボールが重ねて描画されないようにdraw()ごとに背景でresetする
 */
-void resetBackground() {
-    background(background);
+void resetBackground(Amplitude amp) {
+    background(isSoraShown ? sora : background);
 }
 
 void setupWorld() {
@@ -87,38 +130,84 @@ void setupWorld() {
     world = new FWorld();
     world.setEdges();
     world.bottom.setName(BOTTOM_NAME);
-    world.setGravity(0,5000);
+    world.setGravity(0,1500);
 }
 
 void setupSound() {
-    drumSound = new SoundFile(this, "../media/bosatsu_drum.mp3");
-    guitar1Sound = new SoundFile(this, "../media/bosatsu_guitar1.mp3");
-    guitar2Sound = new SoundFile(this, "../media/bosatsu_guitar2.mp3");
+    otherSound = new SoundFile(this, "../media/Other.wav");
+    guitar1Sound = new SoundFile(this, "../media/GTR1.wav");
+    guitar2Sound = new SoundFile(this, "../media/GTR2_REV.wav");
+    keySound = new SoundFile(this, "../media/KEY.wav");
 }
 
 void setupFft() {
-    drumFft = new FFT(this);
+    otherFft = new FFT(this);
     guitar1Fft = new FFT(this);
+    guitar2Fft = new FFT(this, 256);
+    keyFft = new FFT(this);
+    otherFft.input(otherSound);
+    guitar1Fft.input(guitar1Sound);
+    guitar2Fft.input(guitar2Sound);
+    keyFft.input(keySound);
 }
 
 void playSound() {
-    drumSound.play();
+    otherSound.play();
     guitar1Sound.play();
     guitar2Sound.play();
+    keySound.play();
 }
 
 void setupAmplitude() {
-    amp = new Amplitude(this);
+    keyAmp = new Amplitude(this);
+    guitar1Amp = new Amplitude(this);
+    guitar2Amp = new Amplitude(this);
+    keyAmp.input(keySound);
+    guitar1Amp.input(guitar1Sound);
+    guitar2Amp.input(guitar2Sound);
 }
 
-void fallBubbles() {
-    float[] guitar1Spectrum = guitar1Fft.analyze();
-    for (int i = 0; i < guitar1Spectrum.length; i++) {
-        float mapped = map(guitar1Spectrum[i], 0,1,0,100);
-        if (mapped > 30) {
-            addBubble(mapped);
-        }
+void fallBubbles(Amplitude amplitude, int sound) {
+    float threshold;
+    switch(sound) {
+        case GTR1:
+            threshold = 0.1;
+            break;
+        case GTR2:
+            threshold = 0.3;
+            break;
+        case KEY:
+            threshold = 0.2;
+            break;
+        default :
+        threshold = 0.1;
+        break;
     }
+    if (amplitude.analyze() > threshold) {
+        addBubble(sound);
+    }
+    // for (int i = 0; i < spectrum.length; i++) {
+    //     float mapped;
+    //     float threshold;
+    //     switch(sound) {
+    //         case GTR1:
+    //             mapped = map(spectrum[i], 0,1,0,100);
+    //             threshold = 10;
+    //             break;
+    //         case GTR2:
+    //             mapped = map(spectrum[i], 0,0.1,0,1000);
+    //             threshold = 0.07;
+    //             println(mapped);
+    //             break;
+    //         default :
+    //         mapped = map(spectrum[i], 0,1,0,100);
+    //         threshold = 15;
+    //         break;
+    //     }
+    //     if (mapped > threshold) {
+    //         addBubble(mapped, sound);
+    //     }
+// }
 }
 
 void drawBosatsu() {
@@ -141,14 +230,22 @@ void drawCollision() {
     world.add(collision);
 }
 
-void addBubble(float spectrum) {
+void addBubble(int sound) {
     float zDist = random(0, 100);
     float x = random(200, 260);
     float y = 0;
     float size = random(MINSIZE, MAXSIZE);
     float speed = map(zDist, 0, 1, MINSPEED, MAXSPEED);
-    PImage tama = tamas.get(int(random(0, tamas.size()))).copy();
-    Bubble bubble = new Bubble(x, y, size, speed, tama);
+    PImage image;
+    switch(sound) {
+        case GTR1:
+            image = tamas.get((int)random(0, 5)).copy();
+            break;
+        default :
+        image = stars.get((int)random(0, 5)).copy();
+        break;
+    }
+    Bubble bubble = new Bubble(x, y, size, speed, image);
     world.add(bubble.body);
 }
 
@@ -168,7 +265,7 @@ void removeBubble() {
     }
 }
 
-class Bubble{
+class Bubble {
     public FCircle body;
     public Bubble(float x, float y, float size, float speed, PImage image) {
         image.resize(int(size), int(size));
@@ -176,7 +273,7 @@ class Bubble{
         this.body.setPosition(x, y);
         this.body.attachImage(image);
         this.body.setNoStroke();
-        this.body.setRestitution(0.4);
+        this.body.setRestitution(0.6);
         this.body.setVelocity(0, speed);
     }
     public float getY() {
@@ -190,5 +287,28 @@ class Position {
     public Position(float x, float y) {
         this.x = x;
         this.y = y;
+    }
+}
+
+class Cloud {
+    private PImage cloudImage;
+    private int width = 1500;
+    private int height = 700;
+    private int speed;
+    private int positionX;
+    private int positionY;
+    public Cloud(String imagePath, int speed, int positionX, int positionY) {
+        this.cloudImage = loadImage(imagePath);
+        this.speed = speed;
+        this.positionX = positionX;
+        this.positionY = positionY;
+    }
+    
+    public void move(boolean move) {
+        if (!move) {
+            return;
+        }
+        this.positionX -= speed;
+        image(cloudImage, positionX, positionY, width, height);
     }
 }
