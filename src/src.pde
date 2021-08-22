@@ -15,8 +15,10 @@ Amplitude guitar1Amp;
 Amplitude guitar2Amp;
 
 int COUNT = 10;
-int MINSIZE = 10;
-int MAXSIZE = 50;
+int TAMA_MINSIZE = 10;
+int TAMA_MAXSIZE = 30;
+int HOSHI_MINSIZE = 30;
+int HOSHI_MAXSIZE = 50;
 float MINSPEED = 0.5;
 float MAXSPEED = 10;
 int BOUNCE_HEIGHT = 300;
@@ -43,8 +45,7 @@ PImage star3;
 PImage star4;
 PImage star5;
 ArrayList < PImage > stars = new ArrayList < PImage > ();
-Cloud cloudFront;
-Cloud cloudBack;
+Cloud kumo;
 boolean isSoraShown = false;
 
 void setup() {
@@ -66,16 +67,14 @@ void setup() {
     setupAmplitude();
     playSound();
     drawCollision();
-    cloudFront = new Cloud("../images/kumotest1.png", 2, 1000, 300);
-    cloudBack = new Cloud("../images/kumotest2.png", 1, 1000, 100);
+    kumo = new Cloud("../images/kumo.png", 1, 1000, 300);
 }
 
 void draw() {
     toggleSoraShown(guitar2Amp);
     resetBackground(guitar2Amp);
     push();
-    cloudBack.move(isSoraShown);
-    cloudFront.move(isSoraShown);
+    kumo.move(isSoraShown);
     drawBosatsu();
     world.step();
     world.draw();
@@ -135,7 +134,7 @@ void setupWorld() {
 
 void setupSound() {
     otherSound = new SoundFile(this, "../media/Other.wav");
-    guitar1Sound = new SoundFile(this, "../media/GTR1.wav");
+    guitar1Sound = new SoundFile(this, "../media/GTR1_REV.wav");
     guitar2Sound = new SoundFile(this, "../media/GTR2_REV.wav");
     keySound = new SoundFile(this, "../media/KEY.wav");
 }
@@ -174,10 +173,10 @@ void fallBubbles(Amplitude amplitude, int sound) {
             threshold = 0.1;
             break;
         case GTR2:
-            threshold = 0.3;
+            threshold = 0.2;
             break;
         case KEY:
-            threshold = 0.2;
+            threshold = 0.25;
             break;
         default :
         threshold = 0.1;
@@ -234,15 +233,21 @@ void addBubble(int sound) {
     float zDist = random(0, 100);
     float x = random(200, 260);
     float y = 0;
-    float size = random(MINSIZE, MAXSIZE);
+    float size;
     float speed = map(zDist, 0, 1, MINSPEED, MAXSPEED);
     PImage image;
     switch(sound) {
         case GTR1:
+            image = tamas.get((int)random(0, 2)).copy();
+            size = random(TAMA_MINSIZE, TAMA_MAXSIZE);
+            break;
+        case GTR2:
             image = tamas.get((int)random(0, 5)).copy();
+            size = random(TAMA_MINSIZE, TAMA_MAXSIZE);
             break;
         default :
         image = stars.get((int)random(0, 5)).copy();
+        size = random(HOSHI_MINSIZE, HOSHI_MAXSIZE);
         break;
     }
     Bubble bubble = new Bubble(x, y, size, speed, image);
@@ -273,7 +278,7 @@ class Bubble {
         this.body.setPosition(x, y);
         this.body.attachImage(image);
         this.body.setNoStroke();
-        this.body.setRestitution(0.6);
+        this.body.setRestitution(0.5);
         this.body.setVelocity(0, speed);
     }
     public float getY() {
@@ -292,8 +297,8 @@ class Position {
 
 class Cloud {
     private PImage cloudImage;
-    private int width = 1500;
-    private int height = 700;
+    private int width = 2000;
+    private int height = 500;
     private int speed;
     private int positionX;
     private int positionY;
